@@ -25,5 +25,9 @@ namespace ApplicationCore.DataAccess
 		public DbSet<Cloud> Clouds { get; set; }
 		public DbSet<DbServer> DbServers { get; set; }
 
+		public DbSet<Site> Sites { get; set; }
+		public DbSet<Page> Pages { get; set; }
+		public DbSet<Health> Healths { get; set; }
+
 	}
 }

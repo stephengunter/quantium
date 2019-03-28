@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ApplicationCore.DataAccess;
+using ApplicationCore.DataAccess.Test;
 using ApplicationCore.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,6 +40,11 @@ namespace Web
 				b => b.MigrationsAssembly("ApplicationCore"))
 			);
 
+			services.AddDbContext<TestContext>(options =>
+				options.UseSqlServer(Configuration.GetConnectionString("Test"),
+				b => b.MigrationsAssembly("ApplicationCore"))
+			);
+
 			// Register the Swagger generator, defining 1 or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
@@ -47,6 +53,7 @@ namespace Web
 
 			services.AddScoped(typeof(IDefaultRepository<>), typeof(DefaultRepository<>));
 
+			services.AddScoped<IClientService, ClientService>();
 			services.AddScoped<IDeploymentService, DeploymentService>();
 
 

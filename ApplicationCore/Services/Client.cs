@@ -13,13 +13,15 @@ namespace ApplicationCore.Services
 {
 	public interface IClientService
 	{
-		Task<IEnumerable<Client>> FetchClients();
+		Task<IEnumerable<Client>> FetchClients(string keyword = "");
 
-		Task<IEnumerable<Client>> FetchByIdsAsync(IList<int> ids);
-
-		
+		Task<IEnumerable<Client>> FetchByIdsAsync(IList<int> ids);		
 
 		Task<Client> GetByIdAsync(int id);
+
+		Client GetById(int id);
+
+		Client GetByName(string name);
 
 		Task<Client> CreateAsync(Client client);
 
@@ -30,6 +32,8 @@ namespace ApplicationCore.Services
 		Task DeleteAsync(IList<int> ids);
 
 		void UpdateRange(IEnumerable<Client> clients);
+
+		
 	}
 	public class ClientService : IClientService
 	{
@@ -40,11 +44,12 @@ namespace ApplicationCore.Services
 			this.clientRepository = clientRepository;
 		}
 
-		public async Task<IEnumerable<Client>> FetchClients()
+		public async Task<IEnumerable<Client>> FetchClients(string keyword = "")
 		{
-			var clients = await GetAllAsync();
+			
+			if (String.IsNullOrEmpty(keyword)) return await GetAllAsync();
 
-			return clients;
+			return await GetByKeywordAsync(keyword);
 		}
 
 		public async Task<IEnumerable<Client>> FetchByIdsAsync(IList<int> ids)
@@ -56,7 +61,17 @@ namespace ApplicationCore.Services
 
 		public async Task<Client> GetByIdAsync(int id) => await clientRepository.GetByIdAsync(id);
 
+		public Client GetById(int id)
+		{
+			var spec = new ClientFilterSpecifications(id);
+			return clientRepository.GetSingleBySpec(spec);
+		}
 
+		public Client GetByName(string name)
+		{
+			var spec = new ClientFilterSpecifications(name);
+			return clientRepository.GetSingleBySpec(spec);
+		}
 
 		public async Task<Client> CreateAsync(Client client) => await clientRepository.AddAsync(client);
 
@@ -72,6 +87,13 @@ namespace ApplicationCore.Services
 			clientRepository.DeleteRange(clients);
 		}
 
+		async Task<IEnumerable<Client>> GetByKeywordAsync(string keyword)
+		{
+			var filter = new ClientKeywordFilterSpecifications(keyword);
+
+			return await clientRepository.ListAsync(filter);
+		}
+
 		async Task<IEnumerable<Client>> GetAllAsync() => await clientRepository.ListAllAsync();
 
 
@@ -81,5 +103,6 @@ namespace ApplicationCore.Services
 
 			return await clientRepository.ListAsync(filter);
 		}
+
 	}
 }

@@ -21,6 +21,8 @@ namespace Web
 
 			Task.Run(() => Seed.EnsureSeedData(host.Services).Wait());
 
+			Task.Run(() => ApplicationCore.DataAccess.Test.Seed.EnsureSeedData(host.Services).Wait());
+
 			host.Run();
 		}
 

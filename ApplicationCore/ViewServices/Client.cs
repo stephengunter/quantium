@@ -18,8 +18,10 @@ namespace ApplicationCore.Views
 			var model = new ClientViewModel()
 			{
 				id = client.Id,
+				accountId = client.AccountId,
 				name = client.Name,
-				phone = client.Phone
+				address = client.Address,
+				region = client.Region.ToString()
 			};
 
 			model.SetBaseRecordValues(client);
@@ -37,9 +39,17 @@ namespace ApplicationCore.Views
 			return pageList;
 		}
 
+
+
+
 		public static IEnumerable<Client> GetOrdered(this IEnumerable<Client> clients)
 		{
-			return clients.OrderBy(d => d.Order);
+			return clients.OrderBy(c => c.Order);
+		}
+
+		public static IEnumerable<Client> FilterByRegion(this IEnumerable<Client> clients, Region region)
+		{
+			return clients.Where(c => c.Region == region);
 		}
 
 	}

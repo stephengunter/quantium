@@ -7,11 +7,13 @@ namespace ApplicationCore.Models
 {
 	public class Client : BaseRecord
 	{
+		public int AccountId { get; set; }
+
 		public string Name { get; set; }
 
-		public string Phone { get; set; }
+		public string Address { get; set; }
 
-		public string Email { get; set; }
+		public Region Region { get; set; }
 
 		public ICollection<Deployment> Deployments { get; set; } = new List<Deployment>();
 

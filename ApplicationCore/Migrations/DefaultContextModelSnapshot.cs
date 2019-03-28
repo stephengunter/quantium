@@ -25,9 +25,11 @@ namespace ApplicationCore.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("CreatedAt");
+                    b.Property<int>("AccountId");
 
-                    b.Property<string>("Email");
+                    b.Property<string>("Address");
+
+                    b.Property<DateTime>("CreatedAt");
 
                     b.Property<DateTime>("LastUpdated");
 
@@ -37,7 +39,7 @@ namespace ApplicationCore.Migrations
 
                     b.Property<string>("PS");
 
-                    b.Property<string>("Phone");
+                    b.Property<int>("Region");
 
                     b.Property<bool>("Removed");
 
@@ -174,6 +176,95 @@ namespace ApplicationCore.Migrations
                     b.ToTable("Deployments");
                 });
 
+            modelBuilder.Entity("ApplicationCore.Models.Health", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<DateTime>("LastUpdated");
+
+                    b.Property<bool>("OK");
+
+                    b.Property<int>("Order");
+
+                    b.Property<string>("PS");
+
+                    b.Property<int>("PageId");
+
+                    b.Property<bool>("Removed");
+
+                    b.Property<double>("Time");
+
+                    b.Property<string>("UpdatedBy");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId");
+
+                    b.ToTable("Healths");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Page", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("Auth");
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<DateTime>("LastUpdated");
+
+                    b.Property<int>("Order");
+
+                    b.Property<string>("PS");
+
+                    b.Property<bool>("Removed");
+
+                    b.Property<int>("SiteId");
+
+                    b.Property<string>("UpdatedBy");
+
+                    b.Property<string>("Url");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("Pages");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Site", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<DateTime>("LastUpdated");
+
+                    b.Property<string>("Name");
+
+                    b.Property<int>("Order");
+
+                    b.Property<string>("PS");
+
+                    b.Property<bool>("Removed");
+
+                    b.Property<string>("UpdatedBy");
+
+                    b.Property<string>("Url");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sites");
+                });
+
             modelBuilder.Entity("ApplicationCore.Models.Contact", b =>
                 {
                     b.HasOne("ApplicationCore.Models.Client", "Client")
@@ -195,6 +286,22 @@ namespace ApplicationCore.Migrations
                     b.HasOne("ApplicationCore.Models.Client", "Client")
                         .WithMany("Deployments")
                         .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Health", b =>
+                {
+                    b.HasOne("ApplicationCore.Models.Page", "Page")
+                        .WithMany("HealthList")
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Page", b =>
+                {
+                    b.HasOne("ApplicationCore.Models.Site", "Site")
+                        .WithMany("Pages")
+                        .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
