@@ -1,66 +1,135 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using ApplicationCore.Views;
+using ApplicationCore.Services;
+using ApplicationCore.Models;
+using Infrastructure.Views;
+using ApplicationCore.ViewServices;
+using ApplicationCore.Helpers;
+using System.Net.Http;
+using Microsoft.Extensions.Options;
 
 namespace Web.Areas.Api.Controllers
 {
     public class HealthController : BaseApiController
 	{
+		private readonly ISiteService siteService;
+		private readonly IHealthService healthService;
+
+		private readonly AdminSettings adminSettings;
+
+		public HealthController(IHealthService healthService, ISiteService siteService, IOptions<AdminSettings> adminSettings)
+		{
+			this.healthService = healthService;
+			this.siteService = siteService;
+
+			this.adminSettings = adminSettings.Value;
+		}
+
+		
+
 		[HttpGet]
-		public async Task<IActionResult> Index()
-        {
+		public async Task<IActionResult> Index(int site = 0, int pageId = 0, int page = 0, int pageSize = 10)
+		{
+			var model = new HealthIndexViewModel();
+			if (page < 1)
+			{
+				var sites = await siteService.FetchSitesAsync();
+				model.sites = sites.Select(s => s.MapViewModel()).ToList();
+				page = 1;
+			}
+
+
+			var healthRecords = await healthService.FetchHealths();
+
+
+			healthRecords = healthRecords.GetOrdered();
+
+			model.pageList = healthRecords.GetPagedList(page, pageSize);
+
+			return Ok(model);
+		}
+
+		
+
+		async Task<IList<Page>> FetchPagesAsync()
+		{
+			var sites = await siteService.FetchSitesAsync();
+			var pages = new List<Page>();
+			foreach (var site in sites)
+			{
+				pages.AddRange(site.Pages);
+			}
+			return pages;
+		}
+
+		[HttpPost("check")]
+		public async Task<ActionResult> Check([FromBody] AdminRequest model)
+		{
+			ValidateRequest(model);
+
+			if (!ModelState.IsValid) return BadRequest(ModelState);
+
+			var pages = await FetchPagesAsync();
+			foreach (var page in pages)
+			{
+				var health = await CheckAsync(page);
+				if (!health.OK) OnFailed(page);
+
+				await healthService.CreateAsync(health);
+			}
+
+
+			return Ok();
+
+		}
+
+		void ValidateRequest(AdminRequest model)
+		{
+			if (model.Key != adminSettings.Key) ModelState.AddModelError("key", "Key Error");
+		}
+
+		async Task<Health> CheckAsync(Page page)
+		{
+			var health = new Health() { PageId = page.Id, OK = false, Url = page.Url };
+
 			using (var client = new HttpClient())
 			{
 				var startTime = DateTime.Now;
 				try
 				{
-					var result = await client.GetAsync("https://quantium-cdb.chinacloudsites.cn");
-					if (result.IsSuccessStatusCode)
-					{
-						var endTime = DateTime.Now;
-						var Content = result.Content;
+					var result = await client.GetAsync(page.Url);
+					health.Status = (int)result.StatusCode;
 
-						var test = OnSuccess(startTime, endTime);
-						return Ok(test);
-					}
-					else
-					{
-						var x = result.Content;
-
-						return BadRequest();
-					}
+					health.Duration = CalculateTime(startTime, DateTime.Now);
+					health.OK = result.IsSuccessStatusCode;					
 				}
-				catch (Exception ex)
+				catch (Exception)
 				{
-					return Ok(ex.Data);
+					
 				}
-				
+
 			}
 
-			
-        }
 
-		string OnSuccess(DateTime startTime, DateTime endTime)
+			return health;
+		}
+
+		double CalculateTime(DateTime startTime, DateTime endTime)
 		{
 			TimeSpan ts1 = new TimeSpan(startTime.Ticks);
 			TimeSpan ts2 = new TimeSpan(endTime.Ticks);
 			TimeSpan ts = ts1.Subtract(ts2).Duration();
 
-			var time = ts.TotalMilliseconds;
-
-			return ts.TotalSeconds.ToString();
-
-			//dateDiff = ts.Days.ToString() + "天" + ts.Hours.ToString() + "小時" + ts.Minutes.ToString() + "分鐘" + ts.Seconds.ToString() + "秒";
-			//return dateDiff;
+			return Math.Round(ts.TotalSeconds, 2, MidpointRounding.AwayFromZero);
 		}
 
-
-		void OnFailed()
+		void OnFailed(Page page)
 		{
-			// LOG Failed
+
 		}
-    }
+	}
 }

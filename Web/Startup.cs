@@ -45,6 +45,8 @@ namespace Web
 				b => b.MigrationsAssembly("ApplicationCore"))
 			);
 
+			services.Configure<AdminSettings>(Configuration.GetSection("AdminSettings"));
+
 			// Register the Swagger generator, defining 1 or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
@@ -55,6 +57,10 @@ namespace Web
 
 			services.AddScoped<IClientService, ClientService>();
 			services.AddScoped<IDeploymentService, DeploymentService>();
+			services.AddScoped<IHealthService, HealthService>();
+			services.AddScoped<ISiteService, SiteService>();
+			services.AddScoped<IPageService, PageService>();
+
 
 
 			services.AddCors(options => options.AddPolicy("api",

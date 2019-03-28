@@ -9,11 +9,14 @@ namespace ApplicationCore.Models
 	{
 		public int PageId { get; set; }
 
+		public string Url { get; set; }
+
+		public int Status { get; set; }
+
 		public bool OK { get; set; }
 
-		public double Time { get; set; }
-
-		public DateTime CreatedAt { get; set; } = DateTime.Now;
+		public double Duration { get; set; }
+	
 
 
 		public Page Page { get; set; }
